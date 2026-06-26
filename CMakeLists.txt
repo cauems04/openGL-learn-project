@@ -14,9 +14,9 @@ add_subdirectory(3rdparty/glfw)
 include_directories(include)
 
 # 3. Define os arquivos de código
-set(FONTES
-    src/main.cpp
-    src/glad.c
+file(GLOB FONTES CONFIGURE_DEPENDS 
+    "src/*.cpp"
+    "src/*.c"
 )
 
 # 4. Cria o executável final com o nome do seu projeto
@@ -24,3 +24,9 @@ add_executable(opengl_learn_project ${FONTES})
 
 # 5. Linka as bibliotecas usando o nome correto do alvo
 target_link_libraries(opengl_learn_project glfw opengl32)
+
+add_custom_command(TARGET opengl_learn_project POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/res"
+    "$<TARGET_FILE_DIR:opengl_learn_project>/res"
+)

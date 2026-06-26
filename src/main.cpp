@@ -1,5 +1,5 @@
 #include <glad/glad.h>
-#include <D:\Documentos\Graphic Programming\OpenGL\reference - lib n include\Include\include\GLFW/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,11 +11,11 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearErrors();\
-	x;\
-	ASSERT(GLLogCall(#x, __FILE__, __LINE__));
-
+//#define ASSERT(x) if (!(x)) __debugbreak();
+//#define GLCall(x) GLClearErrors();\
+//	x;\
+//	ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+//
 static struct ShaderSource {
 	std::string vertexShader;
 	std::string fragmentShader;
