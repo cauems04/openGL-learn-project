@@ -1,0 +1,9 @@
+.vs/
+Debug/
+include/
+OpenGLTutorial/
+x64/
+/OpenGLTutorial.sln
+/OpenGLTutorial.vcxproj
+/OpenGLTutorial.vcxproj.user
+/OpenGLTutorial.vcxproj.filters
