@@ -17,6 +17,7 @@ include_directories(include)
 file(GLOB FONTES CONFIGURE_DEPENDS 
     "src/*.cpp"
     "src/*.c"
+    "src/*.h"
 )
 
 # 4. Cria o executável final com o nome do seu projeto

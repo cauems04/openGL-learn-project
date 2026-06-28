@@ -1,34 +1,19 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <sstream>
 #include "stb_image.h"
 
 #include "Renderer.h"
+#include "ShaderProgram.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 
-//#define ASSERT(x) if (!(x)) __debugbreak();
-//#define GLCall(x) GLClearErrors();\
-//	x;\
-//	ASSERT(GLLogCall(#x, __FILE__, __LINE__));
-//
-static struct ShaderSource {
-	std::string vertexShader;
-	std::string fragmentShader;
-};
-
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void processInput(GLFWwindow* window);
 
-static unsigned int createShaderProgram(std::string vertexShader, std::string fragmentShader);
-static ShaderSource parseShader(const char* filePath);
-
 static void processVisibilityChangeInput(GLFWwindow* window, const unsigned int& program, float& visibilityTrade);
-
 
 int main() {
 	glfwInit();
@@ -56,9 +41,7 @@ int main() {
 	glViewport(0, 0, 800, 600);
 
 
-	ShaderSource shaderSource = parseShader("res/shaders/Basic.shader");
-	unsigned int shaderProgram = createShaderProgram(shaderSource.vertexShader, shaderSource.fragmentShader);
-
+	ShaderProgram shaderProgram = ShaderProgram("res/shaders/Basic.shader");
 	
 	// Read texture image
 	stbi_set_flip_vertically_on_load(true);
@@ -158,21 +141,25 @@ int main() {
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
-		processVisibilityChangeInput(window, shaderProgram, visibilityTrade);
+		processVisibilityChangeInput(window, shaderProgram.getId(), visibilityTrade);
 
 		GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		GLCall(glUseProgram(shaderProgram));
+		shaderProgram.use();
 
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, brickTex));
 		GLCall(glActiveTexture(GL_TEXTURE1));
 		GLCall(glBindTexture(GL_TEXTURE_2D, happyTex));
 
-		GLCall(glUniform1f(glGetUniformLocation(shaderProgram, "visibilityTrade"), visibilityTrade));
-		GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "containerTex"), 0));
-		GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "happyFaceTex"), 1));
+		shaderProgram.setFLoat("visibilityTrade", visibilityTrade);
+		shaderProgram.setInt("containerTex", 0);
+		shaderProgram.setInt("happyFaceTex", 1);
+
+		//GLCall(glUniform1f(glGetUniformLocation(shaderProgram, "visibilityTrade"), visibilityTrade));
+		//GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "containerTex"), 0));
+		//GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "happyFaceTex"), 1));
 
 		VAO.bind();
 		
@@ -182,36 +169,10 @@ int main() {
 		glfwPollEvents();
 	}
 
-	glDeleteProgram(shaderProgram);
 	glfwTerminate();
 
 	return 0;
 }
-
-static void compileShader(unsigned int shaderProgram, GLenum type, const std::string& shaderSource) {
-
-	unsigned int shader = glCreateShader(type);
-	const char* source = shaderSource.c_str();
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
-
-	glAttachShader(shaderProgram, shader);
-
-	glDeleteShader(shader);
-}
-
-static unsigned int createShaderProgram(std::string vertexShader, std::string fragmentShader) {
-
-	unsigned int shaderProgram = glCreateProgram();
-
-	compileShader(shaderProgram, GL_VERTEX_SHADER, vertexShader);
-	compileShader(shaderProgram, GL_FRAGMENT_SHADER, fragmentShader);
-
-	glLinkProgram(shaderProgram);
-
-	return shaderProgram;
-}
-
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -237,26 +198,4 @@ static void processVisibilityChangeInput(GLFWwindow* window, const unsigned int&
 
 		GLCall(glUniform1f(glGetUniformLocation(program, "visibilityTrade"), visibilityTrade -= 0.001f));
 	}
-}
-
-static ShaderSource parseShader(const char* filePath) {
-
-	enum ReadShaderType { noneType = -1, vertexType, fragmentType };
-
-	std::ifstream stream(filePath);
-	std::string line;
-
-	ReadShaderType readType = noneType;
-	std::stringstream ss[2];
-
-	while (getline(stream, line)) {
-
-		if (line.find("#shader") != std::string::npos) {
-			if (line.find("vertex") != std::string::npos) readType = vertexType;
-			else if (line.find("fragment") != std::string::npos) readType = fragmentType;
-		}
-		else ss[(int)readType] << line << '\n';
-	}
-
-	return { ss[0].str(), ss[1].str() };
 }
