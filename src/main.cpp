@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 #include "stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "Renderer.h"
 #include "ShaderProgram.h"
@@ -136,6 +139,7 @@ int main() {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 	
+	shaderProgram.use();
 
 	float visibilityTrade = 0.2;
 
@@ -146,20 +150,20 @@ int main() {
 		GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		shaderProgram.use();
-
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, brickTex));
 		GLCall(glActiveTexture(GL_TEXTURE1));
 		GLCall(glBindTexture(GL_TEXTURE_2D, happyTex));
 
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
+
+		shaderProgram.setMat4("transform", trans);
+
 		shaderProgram.setFLoat("visibilityTrade", visibilityTrade);
 		shaderProgram.setInt("containerTex", 0);
 		shaderProgram.setInt("happyFaceTex", 1);
-
-		//GLCall(glUniform1f(glGetUniformLocation(shaderProgram, "visibilityTrade"), visibilityTrade));
-		//GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "containerTex"), 0));
-		//GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "happyFaceTex"), 1));
 
 		VAO.bind();
 		

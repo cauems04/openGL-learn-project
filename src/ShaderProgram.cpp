@@ -1,5 +1,6 @@
 #include "ShaderProgram.h"
 
+
 ShaderProgram::ShaderProgram(const char* filePath) {
 	const ShaderSource shaderSource = parseShader(filePath);
 	createShaderProgram(shaderSource);
@@ -7,15 +8,15 @@ ShaderProgram::ShaderProgram(const char* filePath) {
 
 ShaderProgram::~ShaderProgram() {
 	if (m_Renderer_id != 0) {
-		glDeleteProgram(m_Renderer_id);
+		GLCall(glDeleteProgram(m_Renderer_id));
 	}
 }
 
 void ShaderProgram::use() const {
-	glUseProgram(m_Renderer_id);
+	GLCall(glUseProgram(m_Renderer_id));
 }
 
-unsigned int ShaderProgram::getId() {
+unsigned int ShaderProgram::getId() const {
 	return m_Renderer_id;
 };
 
@@ -26,7 +27,7 @@ void ShaderProgram::createShaderProgram(const ShaderSource& shaderSource) {
 	compileShader(shaderProgram, GL_VERTEX_SHADER, shaderSource.vertexShader.c_str());
 	compileShader(shaderProgram, GL_FRAGMENT_SHADER, shaderSource.fragmentShader.c_str());
 
-	glLinkProgram(shaderProgram);
+	GLCall(glLinkProgram(shaderProgram));
 
 	m_Renderer_id = shaderProgram;
 }
@@ -35,12 +36,12 @@ void ShaderProgram::compileShader(unsigned int shaderProgram, GLenum type, const
 
 	unsigned int shader = glCreateShader(type);
 	const char* source = shaderSource;
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
+	GLCall(glShaderSource(shader, 1, &source, NULL));
+	GLCall(glCompileShader(shader));
 
-	glAttachShader(shaderProgram, shader);
+	GLCall(glAttachShader(shaderProgram, shader));
 
-	glDeleteShader(shader);
+	GLCall(glDeleteShader(shader));
 }
 
 ShaderSource ShaderProgram::parseShader(const char* filePath) const {
@@ -67,15 +68,20 @@ ShaderSource ShaderProgram::parseShader(const char* filePath) const {
 
 void ShaderProgram::setBool(const char* name, const bool value) const {
 	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
-	glUniform1i(uniformLoc, (int)value);
+	GLCall(glUniform1i(uniformLoc, (int)value));
 }
 
 void ShaderProgram::setInt(const char* name, const int value) const {
 	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
-	glUniform1i(uniformLoc, value);
+	GLCall(glUniform1i(uniformLoc, value));
 }
 
 void ShaderProgram::setFLoat(const char* name, const float value) const {
 	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
-	glUniform1f(uniformLoc, value);
+	GLCall(glUniform1f(uniformLoc, value));
+}
+
+void ShaderProgram::setMat4(const char* name, const glm::mat4 value) const {
+	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
+	GLCall(glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(value)));
 }

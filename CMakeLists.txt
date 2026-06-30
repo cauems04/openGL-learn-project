@@ -14,10 +14,15 @@ add_subdirectory(3rdparty/glfw)
 include_directories(include)
 
 # 3. Define os arquivos de código
-file(GLOB FONTES CONFIGURE_DEPENDS 
-    "src/*.cpp"
-    "src/*.c"
-    "src/*.h"
+set(FONTES
+    src/main.cpp
+    src/ShaderProgram.cpp
+    src/VertexArray.cpp
+    src/VertexBuffer.cpp
+    src/IndexBuffer.cpp
+    src/Renderer.cpp
+    src/glad.c
+    src/stb_image.cpp
 )
 
 # 4. Cria o executável final com o nome do seu projeto
