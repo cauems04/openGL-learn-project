@@ -11,8 +11,12 @@ VertexArray::~VertexArray() {
 
 void VertexArray::bind() const {
 	GLCall(glBindVertexArray(m_Renderer_id));
+	
+	// These buffers shoudn't be here!
+	// Vertex array's binding should bind others again, since it's already stored on it
 	m_Vertex_buffer->bind();
-	m_Index_buffer->bind();
+
+	if (m_Index_buffer) { m_Index_buffer->bind(); };
 }
 
 //void VertexArray::unbind() const {

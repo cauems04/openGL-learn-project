@@ -31,8 +31,23 @@ add_executable(opengl_learn_project ${FONTES})
 # 5. Linka as bibliotecas usando o nome correto do alvo
 target_link_libraries(opengl_learn_project glfw opengl32)
 
-add_custom_command(TARGET opengl_learn_project POST_BUILD
+target_compile_definitions(opengl_learn_project PRIVATE 
+    SHADER_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/res/shaders/"
+)
+
+# --- SOLUÇÃO À PROVA DE VS: COPIA ADICIONADA DIRETAMENTE NO EXECUTÁVEL ---
+
+# 1. Cria a lista de shaders
+file(GLOB_RECURSE SHADER_FILES "src/res/*")
+
+# 2. DIZ PRO VS QUE OS SHADERS SÃO PARTE DO PROJETO (Eles vão aparecer na barra lateral)
+target_sources(opengl_learn_project PRIVATE ${SHADER_FILES})
+
+# 3. Força a cópia ANTES do executável rodar, checando os arquivos um por um
+add_custom_command(
+    TARGET opengl_learn_project PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/src/res"
     "$<TARGET_FILE_DIR:opengl_learn_project>/res"
+    COMMENT "Atualizando Shaders na pasta de build..."
 )

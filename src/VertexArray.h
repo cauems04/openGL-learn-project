@@ -7,8 +7,8 @@
 class VertexArray {
 private:
 	unsigned int m_Renderer_id;
-	const VertexBuffer* m_Vertex_buffer;
-	const IndexBuffer* m_Index_buffer;
+	const VertexBuffer* m_Vertex_buffer = nullptr;
+	const IndexBuffer* m_Index_buffer = nullptr;
 
 public:
 	VertexArray();

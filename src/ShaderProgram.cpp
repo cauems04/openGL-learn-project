@@ -1,8 +1,8 @@
 #include "ShaderProgram.h"
 
-
 ShaderProgram::ShaderProgram(const char* filePath) {
-	const ShaderSource shaderSource = parseShader(filePath);
+	std::string caminhoCompleto = std::string(SHADER_PATH) + filePath;
+	const ShaderSource shaderSource = parseShader(caminhoCompleto.c_str());
 	createShaderProgram(shaderSource);
 }
 
@@ -38,6 +38,14 @@ void ShaderProgram::compileShader(unsigned int shaderProgram, GLenum type, const
 	const char* source = shaderSource;
 	GLCall(glShaderSource(shader, 1, &source, NULL));
 	GLCall(glCompileShader(shader));
+
+	int success;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		std::cout << "COMPILATION ERROR (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << "): " << infoLog << std::endl;
+	}
 
 	GLCall(glAttachShader(shaderProgram, shader));
 
