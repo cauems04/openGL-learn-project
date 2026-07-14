@@ -19,8 +19,6 @@ static void processInput(GLFWwindow* window, CameraView& cameraView);
 static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-static void processVisibilityChangeInput(GLFWwindow* window, const unsigned int& program, float& visibilityTrade);
-
 double lastX = 00; double lastY = 00;
 static bool firstMouse = true;
 
@@ -28,6 +26,8 @@ float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
 float fov = 45.0f;
+
+glm::vec3 lightSourcePos = glm::vec3(1.2f, 1.0f, 2.0f);
 
 int main() {
 	glfwInit();
@@ -61,8 +61,8 @@ int main() {
 
 	glViewport(0, 0, 800, 600);
 
-
 	ShaderProgram shaderProgram = ShaderProgram("Basic.shader");
+	ShaderProgram lightCubeShaderProgram = ShaderProgram("LightCube.shader");
 	
 	// Read texture image
 	stbi_set_flip_vertically_on_load(true);
@@ -119,87 +119,68 @@ int main() {
 	
 	// Triangle stuff
 	float vertices[] = {
-		//-0.5f, -0.5f, 0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f, // bottom left
-		//0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,  2.0f, 0.0f, // bottom right
-		//-0.5f, 0.5f, 0.5f,   0.0f, 0.0f, 1.0f,  0.0f, 2.0f, // top left
-		//0.5f, 0.5f, 0.5f,    1.0f, 1.0f, 1.0f,  2.0f, 2.0f, // top right
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
 
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-		// positions		  TexCoordinates
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f
 	};
 
-	//unsigned int indices[] = {
-	//	2, 0, 1,
-	//	1, 3, 2,
-	//};
-
-	
 	VertexArray VAO = VertexArray();
 	const VertexBuffer VBO = VertexBuffer(vertices, sizeof(vertices));
 	//const IndexBuffer EBO = IndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
-
+	
+	VAO.bind();
 	VAO.addBuffer(&VBO);
 	//VAO.addIndexes(&EBO);
 	
-	VAO.bind();
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0));
+	GLCall(glEnableVertexAttribArray(0));
 	// try to join the attributePointer to the VAO stuff, if related, otherwise, try using it along with the VBO
 	// if feels weird being separated from the existent classes (VAOs, VBOs...)
 	// Even because if you take off the VAO.bind() just executed, the following attrib pointers will throw errors related to the binded VBO.
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0));
-	GLCall(glEnableVertexAttribArray(0));
-
-	GLCall(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (float*)(3 * sizeof(float))));
-	GLCall(glEnableVertexAttribArray(1));
 
 
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 	
-	shaderProgram.use();
-
-	float visibilityTrade = 0.2;
-
 	glEnable(GL_DEPTH_TEST);
 
 	// Model translation vectors
@@ -216,9 +197,17 @@ int main() {
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+	shaderProgram.use();
+	shaderProgram.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+	shaderProgram.setVec3("lightColor", lightColor);
+
+	lightCubeShaderProgram.use();
+	lightCubeShaderProgram.setVec3("lightColor", lightColor);
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window, cameraView);
-		processVisibilityChangeInput(window, shaderProgram.getId(), visibilityTrade);
 		
 		float currentTime = glfwGetTime();
 		deltaTime = currentTime - lastFrameTime;
@@ -227,23 +216,17 @@ int main() {
 		GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		GLCall(glActiveTexture(GL_TEXTURE0));
-		GLCall(glBindTexture(GL_TEXTURE_2D, brickTex));
-		GLCall(glActiveTexture(GL_TEXTURE1));
-		GLCall(glBindTexture(GL_TEXTURE_2D, happyTex));
+		//GLCall(glActiveTexture(GL_TEXTURE0));
+		//GLCall(glBindTexture(GL_TEXTURE_2D, brickTex));
+		//GLCall(glActiveTexture(GL_TEXTURE1));
+		//GLCall(glBindTexture(GL_TEXTURE_2D, happyTex));
 
 		VAO.bind();
 
-		shaderProgram.setFLoat("visibilityTrade", visibilityTrade);
-		shaderProgram.setInt("containerTex", 0);
-		shaderProgram.setInt("happyFaceTex", 1);
-
-		// view
 		glm::mat4 view = cameraView.getViewMatrix();
-
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-		//glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.f);
-
+		
+		shaderProgram.use();
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
 
@@ -258,10 +241,20 @@ int main() {
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+
+
+		glm::mat4 lightCubeModel = glm::mat4(1.0f);
+		lightCubeModel = glm::translate(lightCubeModel, lightSourcePos);
+		lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));
+		
+		lightCubeShaderProgram.use();
+		lightCubeShaderProgram.setMat4("model", lightCubeModel);
+		lightCubeShaderProgram.setMat4("view", view);
+		lightCubeShaderProgram.setMat4("projection", projection);
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -338,18 +331,3 @@ static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		fov = 45.0f;
 	}
 };
-
-static void processVisibilityChangeInput(GLFWwindow* window, const unsigned int& program, float& visibilityTrade) {
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		
-		if (visibilityTrade >= 1) return;
-
-		GLCall(glUniform1f(glGetUniformLocation(program, "visibilityTrade"), visibilityTrade += 0.001f));
-	
-	} else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-
-		if (visibilityTrade <= 0) return;
-
-		GLCall(glUniform1f(glGetUniformLocation(program, "visibilityTrade"), visibilityTrade -= 0.001f));
-	}
-}

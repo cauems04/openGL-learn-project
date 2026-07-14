@@ -93,3 +93,8 @@ void ShaderProgram::setMat4(const char* name, const glm::mat4 value) const {
 	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
 	GLCall(glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(value)));
 }
+
+void ShaderProgram::setVec3(const char* name, const glm::vec3 value) const {
+	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
+	GLCall(glUniform3fv(uniformLoc, 1, glm::value_ptr(value)));
+}
