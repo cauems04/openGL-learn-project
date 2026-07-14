@@ -23,6 +23,7 @@ set(FONTES
     src/Renderer.cpp
     src/glad.c
     src/stb_image.cpp
+    src/CameraView.cpp
 )
 
 # 4. Cria o executável final com o nome do seu projeto

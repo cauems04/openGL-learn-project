@@ -12,20 +12,14 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "CameraView.h"
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-static void processInput(GLFWwindow* window);
+static void processInput(GLFWwindow* window, CameraView& cameraView);
 static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 static void processVisibilityChangeInput(GLFWwindow* window, const unsigned int& program, float& visibilityTrade);
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-const glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-float yaw = -90.0f;
-float pitch = 0.0f;
 
 double lastX = 00; double lastY = 00;
 static bool firstMouse = true;
@@ -50,6 +44,9 @@ int main() {
 	}
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	CameraView cameraView = CameraView();
+	glfwSetWindowUserPointer(window, &cameraView);
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouseCallback);
@@ -220,7 +217,7 @@ int main() {
 	};
 
 	while (!glfwWindowShouldClose(window)) {
-		processInput(window);
+		processInput(window, cameraView);
 		processVisibilityChangeInput(window, shaderProgram.getId(), visibilityTrade);
 		
 		float currentTime = glfwGetTime();
@@ -242,7 +239,7 @@ int main() {
 		shaderProgram.setInt("happyFaceTex", 1);
 
 		// view
-		glm::mat4 view = glm::lookAt(cameraPos, cameraFront + cameraPos, cameraUp);
+		glm::mat4 view = cameraView.getViewMatrix();
 
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 		//glm::mat4 projection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 100.f);
@@ -278,27 +275,29 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-static void processInput(GLFWwindow* window) {
+static void processInput(GLFWwindow* window, CameraView& cameraView) {
 
 	const float cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, 1);
 	}
 	else if (glfwGetKey(window, GLFW_KEY_W)) {
-		cameraPos += cameraSpeed * cameraFront;
+		cameraView.cameraPos += cameraSpeed * cameraView.cameraFront;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_S)) {
-		cameraPos -= cameraSpeed * cameraFront;
+		cameraView.cameraPos -= cameraSpeed * cameraView.cameraFront;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_A)) {
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		cameraView.cameraPos -= glm::normalize(glm::cross(cameraView.cameraFront, cameraView.cameraUp)) * cameraSpeed;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_D)) {
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		cameraView.cameraPos += glm::normalize(glm::cross(cameraView.cameraFront, cameraView.cameraUp)) * cameraSpeed;
 	}
 }
 
 static void mouseCallback(GLFWwindow* window, double xpos, double ypos){
+	CameraView* cameraView = static_cast<CameraView*>(glfwGetWindowUserPointer(window));
+	
 	if (firstMouse) {
 		lastX = xpos;
 		lastY = ypos;
@@ -309,26 +308,25 @@ static void mouseCallback(GLFWwindow* window, double xpos, double ypos){
 	float yoffset = lastY - ypos;
 
 	lastX = xpos;
-	lastY = ypos;
+	lastY = ypos; 
 
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
 
-	yaw += xoffset;
-	pitch += yoffset;
+	float* yaw = &cameraView->yaw;
+	float* pitch = &cameraView->pitch;
 
-	if (pitch < -89.9f) {
-		pitch = -89.9;
-	} else if (pitch > 89.9f) {
-		pitch = 89.9;
+	*yaw += xoffset;
+	*pitch += yoffset;
+
+	if (*pitch < -89.9f) {
+		*pitch = -89.9;
+	} else if (*pitch > 89.9f) {
+		*pitch = 89.9;
 	}
-
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(direction);
+	
+	cameraView->recalculateCameraFront();
 }
 
 static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
