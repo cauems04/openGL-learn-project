@@ -174,6 +174,8 @@ int main() {
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 		
 		shaderProgram.use();
+		shaderProgram.setVec3("cameraPos", cameraView.cameraPos);
+
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
 
