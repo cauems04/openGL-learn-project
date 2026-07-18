@@ -27,8 +27,6 @@ float lastFrameTime = 0.0f;
 
 float fov = 45.0f;
 
-glm::vec3 lightSourcePos = glm::vec3(1.2f, 1.0f, 2.0f);
-
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -60,128 +58,80 @@ int main() {
 	}
 
 	glViewport(0, 0, 800, 600);
+	glEnable(GL_DEPTH_TEST);
 
 	ShaderProgram shaderProgram = ShaderProgram("Basic.shader");
 	ShaderProgram lightCubeShaderProgram = ShaderProgram("LightCube.shader");
 	
-	// Read texture image
-	stbi_set_flip_vertically_on_load(true);
-
-	int width, height, nrChannels;
-	unsigned char* imgData = stbi_load("res/textures/container.jpg", &width, &height, &nrChannels, 0);
-
-	if (!imgData) {
-		std::cout << "Failed to load image" << std::endl;
-		return 1;
-	}
-
-	// Generate, configurate, and set loaded texture image
-	unsigned int brickTex;
-	glGenTextures(1, &brickTex);
-	glBindTexture(GL_TEXTURE_2D, brickTex);
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(imgData);
-
-
-	imgData = stbi_load("res/textures/awesomeface.png", &width, &height, &nrChannels, 0);
-
-	if (!imgData) {
-		std::cout << "Failed to load image" << std::endl;
-		return 1;
-	}
-
-	// Generate, configurate, and set loaded texture image
-	unsigned int happyTex;
-	glGenTextures(1, &happyTex);
-	glBindTexture(GL_TEXTURE_2D, happyTex);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(imgData);
-
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	
 	// Triangle stuff
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
 	VertexArray VAO = VertexArray();
 	const VertexBuffer VBO = VertexBuffer(vertices, sizeof(vertices));
 	//const IndexBuffer EBO = IndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
-	
 	VAO.bind();
 	VAO.addBuffer(&VBO);
 	//VAO.addIndexes(&EBO);
-	
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0));
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
 	GLCall(glEnableVertexAttribArray(0));
-	// try to join the attributePointer to the VAO stuff, if related, otherwise, try using it along with the VBO
-	// if feels weird being separated from the existent classes (VAOs, VBOs...)
-	// Even because if you take off the VAO.bind() just executed, the following attrib pointers will throw errors related to the binded VBO.
 
+	GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+	GLCall(glEnableVertexAttribArray(1));
+	// try to join the attributePointer to the VAO stuff, if related, otherwise, try using it along with the VBO. If feels weird being separated from the existent classes (VAOs, VBOs...). Even because if you take off the VAO.bind() just executed, the following attrib pointers will throw errors related to the binded VBO
+
+
+	VertexArray lightVAO = VertexArray();
+	lightVAO.bind();
+	lightVAO.addBuffer(&VBO);
+	//VAO.addIndexes(&EBO);
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
+	GLCall(glEnableVertexAttribArray(0));
 
 	GLCall(glBindVertexArray(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	//GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-	
-	glEnable(GL_DEPTH_TEST);
 
 	// Model translation vectors
 	glm::vec3 cubePositions[] = {
@@ -198,10 +148,12 @@ int main() {
 	};
 
 	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	glm::vec3 lightSourcePos = glm::vec3(1.2f, 1.0f, 2.0f);
 
 	shaderProgram.use();
 	shaderProgram.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 	shaderProgram.setVec3("lightColor", lightColor);
+	shaderProgram.setVec3("lightPos", lightSourcePos);
 
 	lightCubeShaderProgram.use();
 	lightCubeShaderProgram.setVec3("lightColor", lightColor);
@@ -216,11 +168,6 @@ int main() {
 		GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//GLCall(glActiveTexture(GL_TEXTURE0));
-		//GLCall(glBindTexture(GL_TEXTURE_2D, brickTex));
-		//GLCall(glActiveTexture(GL_TEXTURE1));
-		//GLCall(glBindTexture(GL_TEXTURE_2D, happyTex));
-
 		VAO.bind();
 
 		glm::mat4 view = cameraView.getViewMatrix();
@@ -234,7 +181,6 @@ int main() {
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			//model = glm::rotate(model, (float)glm::radians((i < 5) ? glfwGetTime() * angle : angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 
 			shaderProgram.setMat4("model", model);
@@ -242,8 +188,7 @@ int main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-
-
+		lightVAO.bind();
 		glm::mat4 lightCubeModel = glm::mat4(1.0f);
 		lightCubeModel = glm::translate(lightCubeModel, lightSourcePos);
 		lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));

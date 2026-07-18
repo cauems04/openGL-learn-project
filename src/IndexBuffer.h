@@ -11,6 +11,8 @@ public:
 	IndexBuffer(const unsigned int* vertices, const int count);
 	~IndexBuffer();
 
+	unsigned int get_id() const;
+
 	void bind() const;
 	void unbind() const;
 
