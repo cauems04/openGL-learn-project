@@ -153,7 +153,6 @@ int main() {
 	shaderProgram.use();
 	shaderProgram.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 	shaderProgram.setVec3("lightColor", lightColor);
-	shaderProgram.setVec3("lightPos", lightSourcePos);
 
 	lightCubeShaderProgram.use();
 	lightCubeShaderProgram.setVec3("lightColor", lightColor);
@@ -168,13 +167,15 @@ int main() {
 		GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		lightSourcePos.x = 5.0f * (float)glm::sin(glm::radians(glfwGetTime() * 50.0f));
+
 		VAO.bind();
 
 		glm::mat4 view = cameraView.getViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 		
 		shaderProgram.use();
-		shaderProgram.setVec3("cameraPos", cameraView.cameraPos);
+		shaderProgram.setVec3("lightPos", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
 
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
