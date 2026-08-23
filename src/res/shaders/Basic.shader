@@ -35,7 +35,7 @@ struct Material {
 };
 
 struct Light {
-	vec3 position;
+	vec3 direction;
 
 	vec3 ambient;
 	vec3 diffuse;
@@ -55,7 +55,7 @@ void main()
 {
 	vec3 ambient = vec3(texture(material.diffuse, texCoord)) * light.ambient;
 
-	vec3 lightDir = normalize(light.position - ViewFragPos);
+	vec3 lightDir = normalize(light.direction);
 	vec3 norm = normalize(Normal);
 
 	float diff = max(dot(norm, lightDir), 0.0);
