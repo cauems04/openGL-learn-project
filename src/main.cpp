@@ -186,11 +186,15 @@ int main() {
 	shaderProgram.use();
 	shaderProgram.setInt("material.diffuse", 0);
 	shaderProgram.setInt("material.specular", 1);
-	shaderProgram.setFLoat("material.intensity", 6.0f);
+	shaderProgram.setFloat("material.intensity", 6.0f);
 
 	shaderProgram.setVec3("light.ambient", lightColor * 0.1f);
 	shaderProgram.setVec3("light.diffuse", lightColor);
 	shaderProgram.setVec3("light.specular", lightColor);
+
+	shaderProgram.setFloat("light.constant", 1.0f);
+	shaderProgram.setFloat("light.linear", 0.09f);
+	shaderProgram.setFloat("light.quadratic", 0.032f);
 
 	lightCubeShaderProgram.use();
 	lightCubeShaderProgram.setVec3("lightColor", lightColor);

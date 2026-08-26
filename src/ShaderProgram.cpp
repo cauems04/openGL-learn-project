@@ -84,7 +84,7 @@ void ShaderProgram::setInt(const char* name, const int value) const {
 	GLCall(glUniform1i(uniformLoc, value));
 }
 
-void ShaderProgram::setFLoat(const char* name, const float value) const {
+void ShaderProgram::setFloat(const char* name, const float value) const {
 	unsigned int uniformLoc = glGetUniformLocation(m_Renderer_id, name);
 	GLCall(glUniform1f(uniformLoc, value));
 }
