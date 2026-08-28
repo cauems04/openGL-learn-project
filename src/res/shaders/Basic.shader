@@ -36,6 +36,9 @@ struct Material {
 
 struct Light {
 	vec3 position;
+	vec3 direction;
+	float cutOff;
+	float outerCutOff;
 
 	vec3 ambient;
 	vec3 diffuse;
@@ -63,6 +66,15 @@ void main()
 	vec3 lightDirNomalized = normalize(lightDir);
 	vec3 norm = normalize(Normal);
 
+	float theta = dot(-lightDirNomalized, normalize(light.direction));
+
+	float intensity = clamp((theta - light.outerCutOff) / (light.cutOff - light.outerCutOff), 0, 1);
+
+	float lightDirLength = length(lightDir);
+	float attenuation = 1 / (light.constant + (light.linear * lightDirLength) + (light.quadratic * (lightDirLength * lightDirLength)));
+
+	vec3 resultColor;
+
 	float diff = max(dot(norm, lightDirNomalized), 0.0);
 	vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, texCoord));
 
@@ -70,11 +82,8 @@ void main()
 	vec3 cameraDir =  normalize(vec3(0.0) - ViewFragPos);
 	float spec = pow(max(dot(cameraDir, reflectedLightDir), 0.0), material.intensity);
 	vec3 specular = light.specular * spec * vec3(texture(material.specular, texCoord));
-
-	float lightDirLength = length(lightDir);
-	float attenuation = 1 / (light.constant + (light.linear * lightDirLength) + (light.quadratic * (lightDirLength * lightDirLength)));
-
-	vec3 resultColor = (ambient + diffuse + specular) * attenuation;
+		
+	resultColor = (ambient + diffuse + specular) * attenuation * intensity;
 
 	fragColor = vec4(resultColor, 1.0);
 };

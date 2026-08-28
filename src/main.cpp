@@ -217,7 +217,10 @@ int main() {
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 		
 		shaderProgram.use();
-		shaderProgram.setVec3("light.position", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
+		shaderProgram.setVec3("light.position", glm::vec3(0.0f));
+		shaderProgram.setVec3("light.direction", glm::vec3(0.0f, 0.0f, -1.0f));
+		shaderProgram.setFloat("light.cutOff", 0.97f);
+		shaderProgram.setFloat("light.outerCutOff", 0.96f);
 
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
@@ -226,24 +229,24 @@ int main() {
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
 			shaderProgram.setMat4("model", model);
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		lightVAO.bind();
-		glm::mat4 lightCubeModel = glm::mat4(1.0f);
-		lightCubeModel = glm::translate(lightCubeModel, lightSourcePos);
-		lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));
-		
-		lightCubeShaderProgram.use();
-		lightCubeShaderProgram.setMat4("model", lightCubeModel);
-		lightCubeShaderProgram.setMat4("view", view);
-		lightCubeShaderProgram.setMat4("projection", projection);
+		//lightVAO.bind();
+		//glm::mat4 lightCubeModel = glm::mat4(1.0f);
+		//lightCubeModel = glm::translate(lightCubeModel, lightSourcePos);
+		//lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));
+		//
+		//lightCubeShaderProgram.use();
+		//lightCubeShaderProgram.setMat4("model", lightCubeModel);
+		//lightCubeShaderProgram.setMat4("view", view);
+		//lightCubeShaderProgram.setMat4("projection", projection);
 
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
