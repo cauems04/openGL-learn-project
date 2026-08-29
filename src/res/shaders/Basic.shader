@@ -34,7 +34,15 @@ struct Material {
 	float intensity;
 };
 
-struct Light {
+struct DirLight {
+	vec3 direction;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+struct PointLight {
 	vec3 position;
 
 	vec3 ambient;
@@ -46,8 +54,24 @@ struct Light {
 	float quadratic;
 };
 
+struct SpotLight {
+	vec3 position;
+	vec3 direction;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float innerCutOut;
+	float outerCutOut;
+
+	float constant;
+	float linear;
+	float quadratic;
+};
+
 uniform Material material;
-uniform Light light;
+uniform DirLight dirLight;
 
 out vec4 fragColor;
 
@@ -78,3 +102,32 @@ void main()
 
 	fragColor = vec4(resultColor, 1.0);
 };
+
+vec3 calcDirLight(DirLight dirLight, vec3 normal, vec3 cameraDir){
+	float diff = max(dot(normal, dirLight.direction), 0);
+	vec3 diffuse = dirLight.diffuse * diff;
+
+	vec3 reflectedLight = reflect(-dirLight.direction);
+	float spec = max(dot(reflectedLight, cameraDir), 0);
+	vec3 specular = dirLight.specular * spec;
+
+	return dirLight.ambient * dirLight.diffuse + dirLight.specular;
+}
+
+vec3 calcPointLight(PointLight pointLight, float normal, vec3 cameraDir, vec3 fragPos){
+	lightDirection = normalize(pointLight.position - fragPos);
+
+	float diff = max(dot(normal, lightDirection), 0);
+	vec3 diffuse = pointLight.diffuse * diff;
+
+	vec3 reflectedLight = reflect(-lightDirection);
+	float spec = max(dot(reflectedLight, cameraDir), 0);
+	vec3 specular = pointLight.specular * spec;
+
+	//calculate attenuation
+
+	return pointLight.ambient * pointLight.diffuse + pointLight.specular;
+}
+
+//vec3 calcSpotLight(){
+//}
