@@ -70,6 +70,9 @@ struct SpotLight {
 	float quadratic;
 };
 
+vec3 calcDirLight(DirLight light, vec3 normal, vec3 cameraDir, vec3 diffColor, vec3 specColor);
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 cameraDir, vec3 fragPos, vec3 diffColor, vec3 specColor);
+
 uniform Material material;
 uniform DirLight dirLight;
 
@@ -81,52 +84,54 @@ in vec2 texCoord;
 
 void main()
 {
-	vec3 ambient = vec3(texture(material.diffuse, texCoord)) * light.ambient;
-	
-	vec3 lightDir = light.position - ViewFragPos;
-	vec3 lightDirNomalized = normalize(lightDir);
 	vec3 norm = normalize(Normal);
 
-	float diff = max(dot(norm, lightDirNomalized), 0.0);
-	vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, texCoord));
+	vec3 diffColor = vec3(texture(material.diffuse, texCoord));
+	vec3 specColor = vec3(texture(material.specular, texCoord));
 
-	vec3 reflectedLightDir = reflect(-lightDirNomalized, norm);
-	vec3 cameraDir =  normalize(vec3(0.0) - ViewFragPos);
-	float spec = pow(max(dot(cameraDir, reflectedLightDir), 0.0), material.intensity);
-	vec3 specular = light.specular * spec * vec3(texture(material.specular, texCoord));
+	// turn cameraPos into an uniform
+	vec3 cameraDir = normalize(-ViewFragPos); 
+	
+	vec3 directionalLight = calcDirLight(dirLight, norm, cameraDir, diffColor, specColor);
 
-	float lightDirLength = length(lightDir);
-	float attenuation = 1 / (light.constant + (light.linear * lightDirLength) + (light.quadratic * (lightDirLength * lightDirLength)));
+	//float lightDirLength = length(lightDir);
+	//float attenuation = 1 / (light.constant + (light.linear * lightDirLength) + (light.quadratic * (lightDirLength * lightDirLength)));
 
-	vec3 resultColor = (ambient + diffuse + specular) * attenuation;
+	vec3 resultColor = directionalLight;
 
 	fragColor = vec4(resultColor, 1.0);
 };
 
-vec3 calcDirLight(DirLight dirLight, vec3 normal, vec3 cameraDir){
-	float diff = max(dot(normal, dirLight.direction), 0);
-	vec3 diffuse = dirLight.diffuse * diff;
+vec3 calcDirLight(DirLight light, vec3 normal, vec3 cameraDir, vec3 diffColor, vec3 specColor){
+	vec3 lightDir = normalize(dirLight.direction);
 
-	vec3 reflectedLight = reflect(-dirLight.direction);
-	float spec = max(dot(reflectedLight, cameraDir), 0);
-	vec3 specular = dirLight.specular * spec;
+	float diff = max(dot(normal, lightDir), 0);
 
-	return dirLight.ambient * dirLight.diffuse + dirLight.specular;
+	vec3 reflectedLight = reflect(-lightDir, normal);
+	float spec = pow(max(dot(reflectedLight, cameraDir), 0), material.intensity);
+
+	vec3 ambient = light.ambient * diffColor;
+	vec3 diffuse = light.diffuse * diff * diffColor;
+	vec3 specular = light.specular * spec * specColor;
+
+	return ambient + diffuse + specular;
 }
 
-vec3 calcPointLight(PointLight pointLight, float normal, vec3 cameraDir, vec3 fragPos){
-	lightDirection = normalize(pointLight.position - fragPos);
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 cameraDir, vec3 fragPos, vec3 diffColor, vec3 specColor){
+	vec3 lightDirection = normalize(light.position - fragPos);
 
 	float diff = max(dot(normal, lightDirection), 0);
-	vec3 diffuse = pointLight.diffuse * diff;
 
-	vec3 reflectedLight = reflect(-lightDirection);
+	vec3 reflectedLight = reflect(-lightDirection, normal);
 	float spec = max(dot(reflectedLight, cameraDir), 0);
-	vec3 specular = pointLight.specular * spec;
 
 	//calculate attenuation
 
-	return pointLight.ambient * pointLight.diffuse + pointLight.specular;
+	vec3 ambient = light.ambient * diffColor;
+	vec3 diffuse = light.diffuse * diff * diffColor;
+	vec3 specular = light.specular * spec * specColor;
+
+	return ambient + diffuse + specular;
 }
 
 //vec3 calcSpotLight(){

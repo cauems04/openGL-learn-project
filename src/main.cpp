@@ -186,18 +186,14 @@ int main() {
 	shaderProgram.use();
 	shaderProgram.setInt("material.diffuse", 0);
 	shaderProgram.setInt("material.specular", 1);
-	shaderProgram.setFloat("material.intensity", 6.0f);
+	shaderProgram.setFloat("material.intensity", 32.0f);
 
-	shaderProgram.setVec3("light.ambient", lightColor * 0.1f);
-	shaderProgram.setVec3("light.diffuse", lightColor);
-	shaderProgram.setVec3("light.specular", lightColor);
 
-	shaderProgram.setFloat("light.constant", 1.0f);
-	shaderProgram.setFloat("light.linear", 0.09f);
-	shaderProgram.setFloat("light.quadratic", 0.032f);
+	shaderProgram.setVec3("dirLight.ambient", lightColor * 0.1f);
+	shaderProgram.setVec3("dirLight.diffuse", lightColor);
+	shaderProgram.setVec3("dirLight.specular", lightColor * 0.8f);
 
-	lightCubeShaderProgram.use();
-	lightCubeShaderProgram.setVec3("lightColor", lightColor);
+	//lightCubeShaderProgram.use();
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window, cameraView);
@@ -217,7 +213,8 @@ int main() {
 		glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 		
 		shaderProgram.use();
-		shaderProgram.setVec3("light.position", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
+		shaderProgram.setVec3("dirLight.direction", glm::vec3(view * glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)));
+		//shaderProgram.setVec3("light.position", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
 
 		shaderProgram.setMat4("view", view);
 		shaderProgram.setMat4("projection", projection);
@@ -226,7 +223,7 @@ int main() {
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
 			shaderProgram.setMat4("model", model);
 
