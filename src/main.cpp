@@ -191,7 +191,16 @@ int main() {
 
 	shaderProgram.setVec3("dirLight.ambient", lightColor * 0.1f);
 	shaderProgram.setVec3("dirLight.diffuse", lightColor);
-	shaderProgram.setVec3("dirLight.specular", lightColor * 0.8f);
+	shaderProgram.setVec3("dirLight.specular", lightColor);
+
+	glm::vec3 pointLightPosition = glm::vec3(-3.0f, -1.0f, -3.0f);
+	glm::vec3 pointLightColor = glm::vec3(0.1f, 0.85f, 0.3f);
+	shaderProgram.setVec3("pointLight.ambient", pointLightColor * 0.1f);
+	shaderProgram.setVec3("pointLight.diffuse", pointLightColor);
+	shaderProgram.setVec3("pointLight.specular", pointLightColor);
+	shaderProgram.setFloat("pointLight.constant", 1.0f);
+	shaderProgram.setFloat("pointLight.linear", 0.09f);
+	shaderProgram.setFloat("pointLight.quadratic", 0.032f);
 
 	//lightCubeShaderProgram.use();
 
@@ -214,6 +223,7 @@ int main() {
 		
 		shaderProgram.use();
 		shaderProgram.setVec3("dirLight.direction", glm::vec3(view * glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)));
+		shaderProgram.setVec3("pointLight.position", glm::vec3(view * glm::vec4(pointLightPosition, 1.0f)));
 		//shaderProgram.setVec3("light.position", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
 
 		shaderProgram.setMat4("view", view);
@@ -232,13 +242,15 @@ int main() {
 
 		lightVAO.bind();
 		glm::mat4 lightCubeModel = glm::mat4(1.0f);
-		lightCubeModel = glm::translate(lightCubeModel, lightSourcePos);
+		lightCubeModel = glm::translate(lightCubeModel, pointLightPosition);
 		lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));
 		
 		lightCubeShaderProgram.use();
 		lightCubeShaderProgram.setMat4("model", lightCubeModel);
 		lightCubeShaderProgram.setMat4("view", view);
 		lightCubeShaderProgram.setMat4("projection", projection);
+
+		lightCubeShaderProgram.setVec3("lightColor", pointLightColor);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
