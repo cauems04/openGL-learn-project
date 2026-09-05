@@ -193,14 +193,35 @@ int main() {
 	shaderProgram.setVec3("dirLight.diffuse", lightColor);
 	shaderProgram.setVec3("dirLight.specular", lightColor);
 
-	glm::vec3 pointLightPosition = glm::vec3(-3.0f, -1.0f, -3.0f);
-	glm::vec3 pointLightColor = glm::vec3(0.1f, 0.85f, 0.3f);
-	shaderProgram.setVec3("pointLight.ambient", pointLightColor * 0.1f);
-	shaderProgram.setVec3("pointLight.diffuse", pointLightColor);
-	shaderProgram.setVec3("pointLight.specular", pointLightColor);
-	shaderProgram.setFloat("pointLight.constant", 1.0f);
-	shaderProgram.setFloat("pointLight.linear", 0.09f);
-	shaderProgram.setFloat("pointLight.quadratic", 0.032f);
+	glm::vec3 pointLightPosition0 = glm::vec3(-3.0f, -1.0f, -3.0f);
+	glm::vec3 pointLightColor0 = glm::vec3(0.1f, 0.85f, 0.3f);
+	shaderProgram.setVec3("pointLights[0].ambient", pointLightColor0 * 0.1f);
+	shaderProgram.setVec3("pointLights[0].diffuse", pointLightColor0);
+	shaderProgram.setVec3("pointLights[0].specular", pointLightColor0);
+	shaderProgram.setFloat("pointLights[0].constant", 1.0f);
+	shaderProgram.setFloat("pointLights[0].linear", 0.09f);
+	shaderProgram.setFloat("pointLights[0].quadratic", 0.032f);
+
+	glm::vec3 pointLightPosition1 = glm::vec3(-1.0f, -2.0f, -1.0f);
+	glm::vec3 pointLightColor1 = glm::vec3(0.05f, 0.1f, 0.7f);
+	shaderProgram.setVec3("pointLights[1].ambient", pointLightColor1 * 0.1f);
+	shaderProgram.setVec3("pointLights[1].diffuse", pointLightColor1);
+	shaderProgram.setVec3("pointLights[1].specular", pointLightColor1);
+	shaderProgram.setFloat("pointLights[1].constant", 1.0f);
+	shaderProgram.setFloat("pointLights[1].linear", 0.09f);
+	shaderProgram.setFloat("pointLights[1].quadratic", 0.032f);
+
+	glm::vec3 spotLightPosition = glm::vec3(2.0f, 1.0f, -2.5f);
+	glm::vec3 spotLightDirection = glm::vec3(0.0f, -1.0f, -0.5f);
+	glm::vec3 spotLightColor = glm::vec3(1.0f, 0.0f, 1.0f);
+	shaderProgram.setVec3("spotLight.ambient", spotLightColor * 0.1f);
+	shaderProgram.setVec3("spotLight.diffuse", spotLightColor);
+	shaderProgram.setVec3("spotLight.specular", spotLightColor);
+	shaderProgram.setFloat("spotLight.constant", 1.0f);
+	shaderProgram.setFloat("spotLight.linear", 0.09f);
+	shaderProgram.setFloat("spotLight.quadratic", 0.032f);
+	shaderProgram.setFloat("spotLight.innerCutOff", 0.93f);
+	shaderProgram.setFloat("spotLight.outerCutOff", 0.89f);
 
 	//lightCubeShaderProgram.use();
 
@@ -223,7 +244,10 @@ int main() {
 		
 		shaderProgram.use();
 		shaderProgram.setVec3("dirLight.direction", glm::vec3(view * glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)));
-		shaderProgram.setVec3("pointLight.position", glm::vec3(view * glm::vec4(pointLightPosition, 1.0f)));
+		shaderProgram.setVec3("pointLights[0].position", glm::vec3(view * glm::vec4(pointLightPosition0, 1.0f)));
+		shaderProgram.setVec3("pointLights[1].position", glm::vec3(view * glm::vec4(pointLightPosition1, 1.0f)));
+		shaderProgram.setVec3("spotLight.position", glm::vec3(view * glm::vec4(spotLightPosition, 1.0f)));
+		shaderProgram.setVec3("spotLight.direction", glm::vec3(view * glm::vec4(spotLightDirection, 0.0f)));
 		//shaderProgram.setVec3("light.position", glm::vec3(view * glm::vec4(lightSourcePos, 1.0f)));
 
 		shaderProgram.setMat4("view", view);
@@ -240,9 +264,11 @@ int main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+
+
 		lightVAO.bind();
 		glm::mat4 lightCubeModel = glm::mat4(1.0f);
-		lightCubeModel = glm::translate(lightCubeModel, pointLightPosition);
+		lightCubeModel = glm::translate(lightCubeModel, pointLightPosition0);
 		lightCubeModel = glm::scale(lightCubeModel, glm::vec3(0.2f, 0.2f, 0.2f));
 		
 		lightCubeShaderProgram.use();
@@ -250,7 +276,7 @@ int main() {
 		lightCubeShaderProgram.setMat4("view", view);
 		lightCubeShaderProgram.setMat4("projection", projection);
 
-		lightCubeShaderProgram.setVec3("lightColor", pointLightColor);
+		lightCubeShaderProgram.setVec3("lightColor", pointLightColor0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
